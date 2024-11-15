@@ -1,5 +1,5 @@
 provider "google" {
-  project = "quick-assesment" 
-  region  = "us-central1"   
+  project = "python-test-441805" 
+  region  = "asia-south1"   
 }
 
