@@ -1,0 +1,57 @@
+pipeline {
+    agent any
+    environment {
+        GOOGLE_APPLICATION_CREDENTIALS = credentials('gcp-sa')
+        GIT_TOKEN = credentials('git-token')
+        EMAIL_RECIPIENT = 'naveenschandran@gmail.com'
+    }
+    stages {
+        stage('Checkout') {
+            steps {
+                git url: 'https://{$(git-token)}@github.com/NaveenNkay/Jenkins-assesment.git', branch: 'main'
+            }
+        }
+        stage('Terraform Init') {
+            steps {
+                script {
+                    // Initialize Terraform and configure remote backend for state storage in GCS buckets
+                    sh 'terraform init'
+                }
+            }
+        }
+        stage('Terraform Validate') {
+            steps {
+                script {
+                    // Validate Terraform configuration of terraform config
+                    sh 'terraform validate'
+                }
+            }
+        }
+        stage('Terraform State-list') {
+            steps {
+                script {
+                    // Validate Terraform configuration of terraform config
+                    sh 'terraform state list'
+                }
+            }
+        }
+    }
+ post {
+    success {
+        emailext (
+            to: "${EMAIL_RECIPIENT}",
+            subject: "Jenkins Build Success: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+            body: "The build was successful! Check it out: ${env.BUILD_URL}",
+            attachLog: true
+        )
+    }
+    failure {
+        emailext (
+            to: "${EMAIL_RECIPIENT}",
+            subject: "Jenkins Build Failure: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+            body: "The build failed! Please check the logs: ${env.BUILD_URL}",
+            attachLog: true
+        )
+    }
+}
+}
